@@ -501,3 +501,9 @@ val append: t -> t -> t
 val concat: t list -> t
 (** [concat ts] is the concatenation of all the [ts]. It is not guaranteed that
  * the result is a newly created [t] in the zero- and one-element cases. *)
+
+type stat
+
+val get_stat : unit -> stat
+
+val pp_stat : Format.formatter -> stat -> unit

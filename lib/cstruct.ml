@@ -91,7 +91,40 @@ let of_bigarray ?(off=0) ?len buffer =
 let to_bigarray buffer =
   Bigarray.Array1.sub buffer.buffer buffer.off buffer.len
 
+(* statistics: number of allocations, total size of allocated data, buckets *)
+
+type stat = int * int * int array
+
+let stats = ref (0, 0, Array.make 9 0)
+
+let get_stat () = !stats
+
+let add_to_stat len =
+  let idx =
+    if len <= 10 then 0
+    else if len <= 50 then 1
+    else if len <= 100 then 2
+    else if len <= 200 then 3
+    else if len <= 500 then 4
+    else if len <= 700 then 5
+    else if len <= 1000 then 6
+    else if len <= 1514 then 7
+    else 8
+  in
+  let count, size, buckets = !stats in
+  Array.set buckets idx (succ (Array.get buckets idx)) ;
+  stats := (succ count, size + len, buckets)
+
+let pp_buckets ppf buckets =
+  let get = Array.get buckets in
+  Format.fprintf ppf "0..10: %d@.11..50: %d@.51..100: %d@.101..200: %d@.201..500: %d@.501..700: %d@.701..1000: %d@.1001..1514: %d@.>1514: %d@."
+    (get 0) (get 1) (get 2) (get 3) (get 4) (get 5) (get 6) (get 7) (get 8)
+
+let pp_stat ppf (count, size, buckets) =
+  Format.fprintf ppf "count %d, size %d, buckets: %a" count size pp_buckets buckets
+
 let create_unsafe len =
+  add_to_stat len ;
   let buffer = Bigarray.(Array1.create char c_layout len) in
   { buffer ; len ; off = 0 }
 
