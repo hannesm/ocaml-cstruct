@@ -95,7 +95,7 @@ let of_bigarray ?(off=0) ?len buffer =
   else
     let bytes = Bytes.create len in
     unsafe_blit_bigstring_to_bytes buffer off bytes 0 len;
-    { buffer = bytes; off; len }
+    { buffer = bytes; off = 0; len }
 
 let to_bigarray buffer =
   let len = buffer.len - buffer.off in
